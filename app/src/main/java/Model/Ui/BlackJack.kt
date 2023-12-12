@@ -25,9 +25,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
@@ -44,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.calculator.restructuredblackjack.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainMenu(navController: NavController,viewModel: ViewModel){
@@ -187,6 +191,7 @@ fun InGameScreen(viewModel: ViewModel,gameOver:(Boolean)->Unit){
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
+
             Buttons(
                 viewModel,
                 playerPoints = { points = it },
@@ -216,11 +221,15 @@ fun Buttons(viewModel: ViewModel,playerPoints:(Int)->Unit,playerNumber:(Int)->Un
             colors = ButtonDefaults.buttonColors(Color.Black),
             onClick = {
                 viewModel.getCard()
+                viewModel.changePLayer()
                 playerPoints(viewModel.playerInfo()[1])
                 playerNumber(viewModel.playerInfo()[0])
+//                viewModel.disableButton()
+//                viewModel.sleep(300)
 
 
-            }) {
+
+            }, enabled = viewModel.enableButton) {
             Text(text = "Hit")
         }
 
@@ -328,7 +337,7 @@ fun GameOverButtons(navController: NavController,viewModel: ViewModel){
             colors = ButtonDefaults.buttonColors(Color.Black),onClick = {
                 navController.navigate(Routes.MainMenu.route)
 
-            }) {
+            } ) {
             Text(text = "Exit")
         }
     }
@@ -362,3 +371,4 @@ fun DisplayCards(cards:MutableList<Card>){
         counter+=40
     }
 }
+

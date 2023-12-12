@@ -4,12 +4,6 @@ import Model.Data.Card
 import Model.Data.Deck
 import Model.Data.Player
 import android.app.Application
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -24,10 +18,18 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
     var currentPLayer = MutableLiveData<Player>()
     private var switchPlayer : Boolean = false
     private var standCounter : Int = 0
+    var enableButton = true
 
 
 
+    fun disableButton(){
+        enableButton=false
 
+    }
+    fun enableButton(){
+        enableButton=true
+
+    }
     private fun createPlayers(){
         _player1.value = Player(1)
         _player2.value = Player(2)
@@ -52,7 +54,12 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
 
     }
 
+    fun sleep(time:Long){
+        Thread.sleep(time)
+    }
+
     fun changePLayer(){
+//        enableButton()
         switchPlayer =! switchPlayer
         if (switchPlayer){
             currentPLayer = _player1
@@ -113,6 +120,8 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
             return "Player $winner is the winner !!"
         }
     }
+
+
 
     fun stand(){
         standCounter += 1
