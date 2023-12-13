@@ -119,7 +119,7 @@ fun MainMenu(navController: NavController,viewModel: ViewModel){
 
 @Composable
 fun MultiplayerScreen(navController: NavController,viewModel: ViewModel) {
-    var gameOver by rememberSaveable { mutableStateOf(false) }
+    val gameOver : Boolean by viewModel.gameOver.observeAsState(initial = false)
     Box(
         modifier = Modifier.paint(
             painter = painterResource(id = R.drawable.darkgreen_background),
@@ -132,7 +132,7 @@ fun MultiplayerScreen(navController: NavController,viewModel: ViewModel) {
             InGameScreen(
                 viewModel,
                 gameOver = {
-                    gameOver = it
+                    viewModel.gameOver(it)
                     Log.d("gameOver",it.toString())
                 }
             )
@@ -278,6 +278,7 @@ fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Un
                 viewModel.changePLayer()
                 playerPoints(viewModel.playerInfo()[1])
                 playerNumber(viewModel.playerInfo()[0])
+                viewModel.stand()
             }, enabled = !disable) {
             Text(text = "Stand")
         }

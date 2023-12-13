@@ -20,6 +20,8 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
     private var standCounter : Int = 0
     private var _displayCard = MutableLiveData<Boolean>()
     var displayCard : LiveData<Boolean> = _displayCard
+    private var _gameOver = MutableLiveData<Boolean>()
+    var gameOver : LiveData<Boolean> = _gameOver
 
 
 
@@ -41,6 +43,8 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
     }
 
     fun startGame(){
+        standCounter = 0
+        _gameOver.value = false
         newDeck()
         createPlayers()
         changePLayer()
@@ -67,8 +71,8 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
     }
 
     fun getCard(){
-        currentPLayer.value!!.hit()
         _displayCard.value = true
+        currentPLayer.value!!.hit()
         currentPLayer.value!!.checkPoints()
 
     }
@@ -118,12 +122,16 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun gameOver(gameOver :Boolean){
+        _gameOver.value = gameOver
+    }
+
 
 
     fun stand(){
         standCounter += 1
         if (standCounter == 2){
-
+            _gameOver.value = true
         }
     }
 
