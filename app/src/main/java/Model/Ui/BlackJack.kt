@@ -1,7 +1,7 @@
 package Model.Ui
 
 import Model.Data.Card
-import Model.Data.Deck
+import androidx.compose.runtime.livedata.observeAsState
 import Model.Data.Player
 import Model.Data.PlayingCards
 import Model.Data.Routes
@@ -44,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.calculator.restructuredblackjack.R
 import kotlinx.coroutines.delay
@@ -145,6 +146,7 @@ fun MultiplayerScreen(navController: NavController,viewModel: ViewModel) {
 fun InGameScreen(viewModel: ViewModel,gameOver:(Boolean)->Unit){
     var points by rememberSaveable { mutableIntStateOf(viewModel.currentPLayer.value!!.points) }
     var playerNumber by rememberSaveable { mutableIntStateOf(viewModel.currentPLayer.value!!.playerNumber.toInt()) }
+    val displayCard: Boolean by viewModel.displayCard.observeAsState(initial = false)
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -180,6 +182,17 @@ fun InGameScreen(viewModel: ViewModel,gameOver:(Boolean)->Unit){
         ) {
             ImageCreator(Card(PlayingCards.ace, Suits.spades, 0, 0, "backside"), 155, 245, 0, 0)
         }
+        if (displayCard){
+            RecivedCard(
+                card = viewModel.lastCard(),
+                width = 500,
+                height = 500,
+                offsetX = 0,
+                offsetY =0 ,
+                viewModel,
+                playerPoints = { points = it },
+                playerNumber = { playerNumber = it },)
+        }
         Box (
             modifier = Modifier
                 .fillMaxWidth()
@@ -194,17 +207,45 @@ fun InGameScreen(viewModel: ViewModel,gameOver:(Boolean)->Unit){
 
             Buttons(
                 viewModel,
+                gameOver = {gameOver(it)},
                 playerPoints = { points = it },
                 playerNumber = { playerNumber = it },
-                gameOver = {gameOver(it)}
             )
         }
     }
 }
 
+@Composable
+fun RecivedCard(card : Card, width :Int , height : Int , offsetX :Int , offsetY :Int ,viewModel: ViewModel,playerPoints:(Int)->Unit,playerNumber:(Int)->Unit){
+
+    Dialog(onDismissRequest = { /*TODO*/ }) {
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally
+        ){
+            ImageCreator(card,width,height,offsetX,offsetY)
+            Button(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .height(60.dp)
+                    .width(160.dp),
+                shape = RectangleShape,
+                colors = ButtonDefaults.buttonColors(Color.Black),
+                onClick = {
+                    viewModel.changePLayer()
+                    playerPoints(viewModel.playerInfo()[1])
+                    playerNumber(viewModel.playerInfo()[0])
+                }) {
+                Text(text = "Close")
+            }
+        }
+    }
+
+}
+
 
 @Composable
-fun Buttons(viewModel: ViewModel,playerPoints:(Int)->Unit,playerNumber:(Int)->Unit,gameOver:(Boolean)->Unit) {
+fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Unit,playerNumber:(Int)->Unit) {
+    val disable: Boolean by viewModel.displayCard.observeAsState(initial = false)
     Row (
         modifier = Modifier
             .padding(top = 80.dp)
@@ -221,15 +262,8 @@ fun Buttons(viewModel: ViewModel,playerPoints:(Int)->Unit,playerNumber:(Int)->Un
             colors = ButtonDefaults.buttonColors(Color.Black),
             onClick = {
                 viewModel.getCard()
-                viewModel.changePLayer()
-                playerPoints(viewModel.playerInfo()[1])
-                playerNumber(viewModel.playerInfo()[0])
-//                viewModel.disableButton()
-//                viewModel.sleep(300)
 
-
-
-            }, enabled = viewModel.enableButton) {
+            }, enabled = !disable) {
             Text(text = "Hit")
         }
 
@@ -244,7 +278,7 @@ fun Buttons(viewModel: ViewModel,playerPoints:(Int)->Unit,playerNumber:(Int)->Un
                 viewModel.changePLayer()
                 playerPoints(viewModel.playerInfo()[1])
                 playerNumber(viewModel.playerInfo()[0])
-            }) {
+            }, enabled = !disable) {
             Text(text = "Stand")
         }
         gameOver(viewModel.checkGameOver())

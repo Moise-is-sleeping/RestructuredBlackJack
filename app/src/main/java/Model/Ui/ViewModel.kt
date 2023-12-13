@@ -18,18 +18,11 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
     var currentPLayer = MutableLiveData<Player>()
     private var switchPlayer : Boolean = false
     private var standCounter : Int = 0
-    var enableButton = true
+    private var _displayCard = MutableLiveData<Boolean>()
+    var displayCard : LiveData<Boolean> = _displayCard
 
 
 
-    fun disableButton(){
-        enableButton=false
-
-    }
-    fun enableButton(){
-        enableButton=true
-
-    }
     private fun createPlayers(){
         _player1.value = Player(1)
         _player2.value = Player(2)
@@ -54,13 +47,11 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
 
     }
 
-    fun sleep(time:Long){
-        Thread.sleep(time)
-    }
 
     fun changePLayer(){
-//        enableButton()
+
         switchPlayer =! switchPlayer
+        _displayCard.value = false
         if (switchPlayer){
             currentPLayer = _player1
         }else{
@@ -77,9 +68,15 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
 
     fun getCard(){
         currentPLayer.value!!.hit()
+        _displayCard.value = true
         currentPLayer.value!!.checkPoints()
 
     }
+
+    fun lastCard(): Card {
+        return currentPLayer.value!!.cardsInHand.last()
+    }
+
 
     fun color(): Long {
         val color_: Long
