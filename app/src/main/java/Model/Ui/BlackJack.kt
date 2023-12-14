@@ -288,9 +288,6 @@ fun RecivedCard(card : Card, width :Int , height : Int , offsetX :Int , offsetY 
 fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Unit,playerNumber:(Int)->Unit) {
     val disable: Boolean by viewModel.displayCard.observeAsState(initial = false)
     val ai: Boolean by viewModel.ai.observeAsState(initial = false)
-    var test by rememberSaveable {
-        mutableStateOf(false)
-    }
     Row (
         modifier = Modifier
             .padding(top = 80.dp)
@@ -321,7 +318,7 @@ fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Un
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),
             onClick = {
-                test = true
+                viewModel.playerHasStood()
                 if (!ai){
                     viewModel.changePLayer()
                 }
@@ -330,10 +327,6 @@ fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Un
                 viewModel.stand()
             }, enabled = !disable) {
             Text(text = "Stand")
-            if (test){
-                Toast.makeText(LocalContext.current,viewModel.aiTurn(),Toast.LENGTH_SHORT).show()
-                test = false
-            }
         }
         gameOver(viewModel.checkGameOver())
     }
@@ -411,8 +404,9 @@ fun GameOverButtons(navController: NavController,viewModel: ViewModel){
             .width(160.dp),
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),onClick = {
-                navController.navigate(Routes.MultiplayerScreen.route)
                 viewModel.startGame(viewModel.ai.value!!)
+                navController.navigate(Routes.MultiplayerScreen.route)
+
             }) {
             Text(text = "Play Again")
 

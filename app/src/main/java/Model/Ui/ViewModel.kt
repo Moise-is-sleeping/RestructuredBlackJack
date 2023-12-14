@@ -50,11 +50,19 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
     }
 
     fun startGame(ai:Boolean){
+        switchPlayer = true
+        _displayCard.value = false
         _ai.value = ai
         standCounter = 0
         _gameOver.value = false
         newDeck()
         createPlayers()
+    }
+
+    fun playerHasStood(){
+        while (standCounter<2){
+            aiTurn()
+        }
     }
 
 
@@ -84,6 +92,9 @@ class ViewModel (application: Application) : AndroidViewModel(application) {
                 text = "Ai has stood !!"
             }
             currentPLayer.value!!.checkPoints()
+            if (checkGameOver()){
+                _gameOver.value = true
+            }
             changePLayer()
         }
         return text
