@@ -4,6 +4,7 @@ import Model.Data.Player
 import Model.Data.Routes
 import Model.Ui.MainMenu
 import Model.Ui.MultiplayerScreen
+import Model.Ui.SinglePlayerScreen
 import Model.Ui.ViewModel
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -42,6 +43,9 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(Routes.MultiplayerScreen.route){
                             MultiplayerScreen(navController,viewModel)
+                        }
+                        composable(Routes.SinglePlayerScreen.route){
+                            SinglePlayerScreen(navController,viewModel)
                         }
 
                     }

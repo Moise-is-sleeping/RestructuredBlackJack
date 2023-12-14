@@ -47,8 +47,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.calculator.restructuredblackjack.R
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import android.content.Context
+import android.widget.Toast
+
+
 
 @Composable
 fun MainMenu(navController: NavController,viewModel: ViewModel){
@@ -98,7 +100,7 @@ fun MainMenu(navController: NavController,viewModel: ViewModel){
                     shape = RectangleShape,
                     colors = ButtonDefaults.buttonColors(Color.Black),onClick = {
                         navController.navigate(Routes.MultiplayerScreen.route)
-                        viewModel.startGame()
+                        viewModel.startGame(false)
                     }) {
                     Text(text = "Multiplayer")
                 }
@@ -108,7 +110,10 @@ fun MainMenu(navController: NavController,viewModel: ViewModel){
                         .height(60.dp)
                         .width(160.dp),
                     shape = RectangleShape,
-                    colors = ButtonDefaults.buttonColors(Color.Black),onClick = { /*TODO*/ }) {
+                    colors = ButtonDefaults.buttonColors(Color.Black),onClick = {
+                        navController.navigate(Routes.SinglePlayerScreen.route)
+                        viewModel.startGame(true)
+                    }) {
                     Text(text = "SinglePlayer")
                 }
             }
@@ -116,6 +121,32 @@ fun MainMenu(navController: NavController,viewModel: ViewModel){
     }
 
 }
+
+@Composable
+fun SinglePlayerScreen(navController: NavController,viewModel: ViewModel){
+    val gameOver : Boolean by viewModel.gameOver.observeAsState(initial = false)
+    Box(
+        modifier = Modifier.paint(
+            painter = painterResource(id = R.drawable.darkgreen_background),
+            contentScale = ContentScale.FillWidth
+        )
+    ) {
+        if (gameOver){
+            GameOverScreen(navController, viewModel.checkWinner(), viewModel)
+        }else{
+            InGameScreen(
+                viewModel,
+                gameOver = {
+                    viewModel.gameOver(it)
+                    Log.d("gameOver",it.toString())
+                }
+            )
+        }
+    }
+
+}
+
+
 
 @Composable
 fun MultiplayerScreen(navController: NavController,viewModel: ViewModel) {
@@ -217,7 +248,10 @@ fun InGameScreen(viewModel: ViewModel,gameOver:(Boolean)->Unit){
 
 @Composable
 fun RecivedCard(card : Card, width :Int , height : Int , offsetX :Int , offsetY :Int ,viewModel: ViewModel,playerPoints:(Int)->Unit,playerNumber:(Int)->Unit){
-
+    val ai: Boolean by viewModel.ai.observeAsState(initial = false)
+    var test by rememberSaveable {
+        mutableStateOf(false)
+    }
     Dialog(onDismissRequest = { /*TODO*/ }) {
         Column (
             horizontalAlignment = Alignment.CenterHorizontally
@@ -231,11 +265,18 @@ fun RecivedCard(card : Card, width :Int , height : Int , offsetX :Int , offsetY 
                 shape = RectangleShape,
                 colors = ButtonDefaults.buttonColors(Color.Black),
                 onClick = {
-                    viewModel.changePLayer()
+                    test = true
+                    if (!ai){
+                        viewModel.changePLayer()
+                    }
                     playerPoints(viewModel.playerInfo()[1])
                     playerNumber(viewModel.playerInfo()[0])
                 }) {
                 Text(text = "Close")
+                if (test){
+                    Toast.makeText(LocalContext.current,viewModel.aiTurn(),Toast.LENGTH_SHORT).show()
+                    test = false
+                }
             }
         }
     }
@@ -246,6 +287,10 @@ fun RecivedCard(card : Card, width :Int , height : Int , offsetX :Int , offsetY 
 @Composable
 fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Unit,playerNumber:(Int)->Unit) {
     val disable: Boolean by viewModel.displayCard.observeAsState(initial = false)
+    val ai: Boolean by viewModel.ai.observeAsState(initial = false)
+    var test by rememberSaveable {
+        mutableStateOf(false)
+    }
     Row (
         modifier = Modifier
             .padding(top = 80.dp)
@@ -262,10 +307,11 @@ fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Un
             colors = ButtonDefaults.buttonColors(Color.Black),
             onClick = {
                 viewModel.getCard()
-
+                playerPoints(viewModel.playerInfo()[1])
             }, enabled = !disable) {
             Text(text = "Hit")
         }
+
 
         Button(
             modifier = Modifier
@@ -275,12 +321,19 @@ fun Buttons(viewModel: ViewModel,gameOver:(Boolean)->Unit,playerPoints:(Int)->Un
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),
             onClick = {
-                viewModel.changePLayer()
+                test = true
+                if (!ai){
+                    viewModel.changePLayer()
+                }
                 playerPoints(viewModel.playerInfo()[1])
                 playerNumber(viewModel.playerInfo()[0])
                 viewModel.stand()
             }, enabled = !disable) {
             Text(text = "Stand")
+            if (test){
+                Toast.makeText(LocalContext.current,viewModel.aiTurn(),Toast.LENGTH_SHORT).show()
+                test = false
+            }
         }
         gameOver(viewModel.checkGameOver())
     }
@@ -359,7 +412,7 @@ fun GameOverButtons(navController: NavController,viewModel: ViewModel){
             shape = RectangleShape,
             colors = ButtonDefaults.buttonColors(Color.Black),onClick = {
                 navController.navigate(Routes.MultiplayerScreen.route)
-                viewModel.startGame()
+                viewModel.startGame(viewModel.ai.value!!)
             }) {
             Text(text = "Play Again")
 
